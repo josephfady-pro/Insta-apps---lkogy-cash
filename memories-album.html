@@ -1,0 +1,593 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>insta Lkogy</title>
+    
+    <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;700&display=swap" rel="stylesheet">
+
+    <style>
+        /* التنسيقات الأساسية */
+        body {
+            font-family: 'Cairo', 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background-color: #f8f9fa;
+            margin: 0;
+            padding: 20px;
+            color: #262626;
+        }
+
+        /* الهيدر */
+        .header {
+            background: linear-gradient(45deg, #f09433 0%, #e6683c 25%, #dc2743 50%, #cc2366 75%, #bc1888 100%);
+            color: white;
+            padding: 25px 20px;
+            text-align: center;
+            border-radius: 20px;
+            margin-bottom: 30px;
+            box-shadow: 0 10px 20px rgba(220, 39, 67, 0.15);
+            position: relative;
+        }
+
+        .header h1 {
+            margin: 0;
+            font-size: 2.5em;
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.2);
+            letter-spacing: 1px;
+        }
+
+        .back-button {
+            position: absolute;
+            left: 20px;
+            top: 50%;
+            transform: translateY(-50%);
+            background: rgba(255, 255, 255, 0.2);
+            backdrop-filter: blur(5px);
+            color: white;
+            padding: 8px 16px;
+            border-radius: 30px;
+            text-decoration: none;
+            font-weight: bold;
+            font-family: inherit;
+            font-size: 15px;
+            cursor: pointer;
+            box-shadow: 0 4px 10px rgba(0,0,0,0.1);
+            transition: all 0.3s ease;
+            border: 1px solid rgba(255, 255, 255, 0.5);
+        }
+
+        .back-button:hover {
+            background: white;
+            color: #bc1888;
+            transform: translateY(-50%) scale(1.05);
+        }
+
+        /* المجلدات */
+        .folder-section {
+            margin-bottom: 15px;
+            background: white;
+            border-radius: 16px;
+            overflow: hidden;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.03);
+            transition: all 0.3s ease;
+        }
+
+        .folder-button {
+            width: 100%;
+            text-align: right;
+            background: white;
+            border: none;
+            color: #262626;
+            padding: 18px 25px;
+            font-size: 1.2em;
+            font-weight: 700;
+            font-family: inherit;
+            cursor: pointer;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            transition: background 0.3s ease;
+        }
+
+        .folder-button:hover {
+            background: #fdfdfd;
+            color: #bc1888;
+        }
+
+        .folder-button .arrow {
+            font-size: 1em;
+            transition: transform 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+            color: #888;
+        }
+
+        .folder-button.active .arrow {
+            transform: rotate(-90deg);
+            color: #bc1888;
+        }
+
+        .folder-content {
+            display: none;
+            padding: 20px;
+            background: #fafafa;
+            border-top: 1px solid #eee;
+            animation: slideDown 0.3s ease-out;
+        }
+
+        .folder-content.active {
+            display: block;
+        }
+
+        @keyframes slideDown {
+            from { opacity: 0; transform: translateY(-10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        /* الجاليري والكروت */
+        .gallery {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(160px, 1fr));
+            gap: 15px;
+        }
+
+        .card {
+            background: white;
+            border-radius: 12px;
+            overflow: hidden;
+            box-shadow: 0 4px 10px rgba(0,0,0,0.05);
+            transition: all 0.3s cubic-bezier(0.25, 0.8, 0.25, 1);
+            border: 1px solid #f0f0f0;
+            cursor: pointer;
+            position: relative;
+        }
+
+        .card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 10px 25px rgba(188, 24, 136, 0.2);
+        }
+
+        /* حاوية الصورة لضمان ثبات الكارت أثناء الـ Lazy Loading */
+        .img-container {
+            width: 100%;
+            height: 180px;
+            background: #eaeaea; /* لون مؤقت كـ placeholder */
+            position: relative;
+            overflow: hidden;
+        }
+
+        .card img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            display: block;
+            opacity: 0; /* تختفي في البداية وتظهر بأنميشن لطيف عند اكتمال التحميل */
+            transition: opacity 0.5s ease-in-out;
+        }
+
+        /* الأنيميشن عند ظهور الصورة ونهاية تحميلها */
+        .card img.loaded {
+            opacity: 1;
+        }
+
+        .card-content {
+            padding: 12px;
+        }
+
+        .card h3 {
+            margin: 0 0 10px;
+            font-size: 0.9em;
+            color: #333;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            direction: ltr;
+            text-align: right;
+            font-weight: 600;
+        }
+
+        .download-btn {
+            background: rgba(240, 148, 51, 0.1);
+            color: #e6683c;
+            border: 1px solid #e6683c;
+            padding: 8px 10px;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 0.85em;
+            font-weight: bold;
+            font-family: inherit;
+            width: 100%;
+            transition: all 0.3s ease;
+        }
+
+        .download-btn:hover {
+            background: linear-gradient(45deg, #f09433, #dc2743);
+            color: white;
+            border-color: transparent;
+        }
+
+        /* Modal النافذة المنبثقة للتكبير */
+        .modal {
+            display: none;
+            position: fixed;
+            z-index: 1000;
+            left: 0;
+            top: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0,0,0,0.85);
+            backdrop-filter: blur(8px);
+            align-items: center;
+            justify-content: center;
+            flex-direction: column;
+            opacity: 0;
+            transition: opacity 0.3s ease;
+        }
+
+        .modal.show {
+            opacity: 1;
+        }
+
+        .close {
+            position: absolute;
+            top: 20px;
+            right: 20px;
+            width: 45px;
+            height: 45px;
+            background-color: rgba(255, 255, 255, 0.2);
+            color: white;
+            font-size: 28px;
+            font-weight: bold;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border-radius: 50%;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            z-index: 1001;
+        }
+
+        .close:hover {
+            background-color: #dc2743;
+            transform: scale(1.1) rotate(90deg);
+        }
+
+        .modal-content {
+            max-width: 90%;
+            max-height: 75vh;
+            display: flex;
+            justify-content: center;
+            position: relative;
+        }
+
+        .modal-content img {
+            max-width: 100%;
+            max-height: 75vh;
+            object-fit: contain;
+            border-radius: 12px;
+            box-shadow: 0 10px 40px rgba(0,0,0,0.5);
+        }
+
+        .modal-download {
+            margin-top: 25px;
+            background: linear-gradient(45deg, #f09433, #dc2743, #bc1888);
+            color: white;
+            border: none;
+            padding: 12px 35px;
+            border-radius: 50px;
+            font-size: 1.1em;
+            font-weight: bold;
+            font-family: inherit;
+            cursor: pointer;
+            text-decoration: none;
+            box-shadow: 0 5px 15px rgba(220, 39, 67, 0.4);
+            transition: transform 0.3s ease, box-shadow 0.3s ease;
+            z-index: 1001;
+        }
+
+        .modal-download:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 8px 25px rgba(220, 39, 67, 0.6);
+        }
+
+        /* Spinner */
+        .loading-container {
+            text-align: center;
+            padding: 50px 20px;
+            color: #bc1888;
+            font-size: 1.2em;
+            font-weight: 600;
+        }
+
+        .spinner {
+            width: 50px;
+            height: 50px;
+            border: 4px solid rgba(188, 24, 136, 0.2);
+            border-top: 4px solid #bc1888;
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+            margin: 0 auto 15px;
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        .error {
+            text-align: center;
+            padding: 40px;
+            font-size: 1.2em;
+            color: #dc2743;
+            background: #ffebee;
+            border-radius: 12px;
+            margin: 20px 0;
+        }
+
+        footer {
+            text-align: center;
+            margin-top: 40px;
+            padding: 20px;
+            color: #888;
+            font-size: 1em;
+            font-weight: 600;
+        }
+        
+        footer span {
+            color: #bc1888;
+        }
+
+        @media (max-width: 600px) {
+            .header h1 { font-size: 1.8em; }
+            .back-button { padding: 6px 12px; font-size: 13px; }
+            .modal-content { max-height: 65vh; }
+            .modal-content img { max-height: 65vh; }
+        }
+    </style>
+</head>
+<body>
+
+    <div class="header">
+        <button class="back-button" onclick="history.back()">رجوع</button>
+        <h1>insta Lkogy</h1>
+    </div>
+
+    <div id="content">
+        <div class="loading-container">
+            <div class="spinner"></div>
+            <div>جاري تحميل الذكريات الجميلة...</div>
+        </div>
+    </div>
+
+    <div id="imageModal" class="modal" onclick="closeModal(event)">
+        <div class="close" onclick="closeModal(event)">&times;</div>
+        <div class="modal-content" id="modalImageContainer">
+            <img id="modalImage" src="" alt="صورة مكبرة">
+        </div>
+        <a id="modalDownloadBtn" class="modal-download" href="#" download target="_blank">تحميل الصورة بدقة عالية</a>
+    </div>
+
+    <footer>
+        ♥️♥️ <span>memories</span> ♥️♥️
+    </footer>
+
+    <script>
+        const ROOT_FOLDER_ID = '1qGXy39JBraQZYlprWy61FNwaLw2FLo8o'; 
+        const API_KEY = 'AIzaSyBLjyEdzMp9F-A8tWRIYNfsqfAcoAXosYU'; 
+
+        const modal = document.getElementById('imageModal');
+        const modalImg = document.getElementById('modalImage');
+        const modalDownload = document.getElementById('modalDownloadBtn');
+
+        function openImageModal(imgSrc, imgName, downloadUrl) {
+            modal.style.display = 'flex';
+            setTimeout(() => modal.classList.add('show'), 10);
+            modalImg.src = imgSrc;
+            modalDownload.href = downloadUrl;
+            modalDownload.download = imgName;
+        }
+
+        window.closeModal = function(event) {
+            if (event.target === modal || event.target.classList.contains('close')) {
+                modal.classList.remove('show');
+                setTimeout(() => modal.style.display = 'none', 300);
+            }
+        }
+
+        document.addEventListener('keydown', function(event) {
+            if (event.key === 'Escape' && modal.style.display === 'flex') {
+                closeModal({target: modal});
+            }
+        });
+
+        // ميزة الأولوية والتحميل الذكي (من فوق لتحت)
+        let lazyImageObserver;
+
+        function initLazyLoading() {
+            if ('IntersectionObserver' in window) {
+                lazyImageObserver = new IntersectionObserver((entries, observer) => {
+                    // فرز العناصر الظاهرة بناءً على موقعها (لإعطاء الأولوية للظاهر حالياً)
+                    const visibleEntries = entries.filter(entry => entry.isIntersecting);
+                    
+                    // ترتيب تحميل الصور القريبة: العميل يرى حالياً العناصر، فنبدأ بها فوراً
+                    visibleEntries.forEach((entry) => {
+                        const lazyImage = entry.target;
+                        
+                        // الصورة الحالية تأخذ أولوية قصوى من المتصفح
+                        lazyImage.setAttribute('fetchpriority', 'high');
+                        lazyImage.src = lazyImage.dataset.src;
+                        
+                        lazyImage.onload = () => {
+                            lazyImage.classList.add('loaded');
+                        };
+
+                        observer.unobserve(lazyImage);
+                    });
+
+                    // تحميل الصور الأخرى "من فوق لتحت" في الخلفية للمجلد المفتوح
+                    const allLazyImages = Array.from(document.querySelectorAll('img.lazy:not([src])'));
+                    
+                    // تم إزالة .reverse() هنا ليصبح الترتيب طبيعياً من الأعلى إلى الأسفل (من فوق لتحت)
+                    allLazyImages.forEach((img, index) => {
+                        // عمل تأخير تصاعدي بسيط (Debounce) للصور لمنع حظر الشبكة وضمان سلاسة التتابع
+                        setTimeout(() => {
+                            if (!img.src && img.dataset.src) {
+                                img.setAttribute('fetchpriority', 'low'); // أولوية منخفضة للصور البعيدة تحت
+                                img.src = img.dataset.src;
+                                img.onload = () => img.classList.add('loaded');
+                            }
+                        }, index * 150); // 150 ملي ثانية فارق بين كل صورة وتاليتها لأسفل
+                    });
+
+                }, {
+                    root: null,
+                    rootMargin: '100px 0px 300px 0px', // يبدأ بالتحميل قبل أن يصل إليها المستخدم
+                    threshold: 0.01
+                });
+            } else {
+                // حل احتياطي في حال كان المتصفح قديم جداً
+                document.querySelectorAll('img.lazy').forEach(img => {
+                    img.src = img.dataset.src;
+                    img.classList.add('loaded');
+                });
+            }
+        }
+
+        async function fetchFolderTree(folderId) {
+            const folder = { id: folderId, name: 'root', files: [], subFolders: [] };
+
+            async function recurse(currentFolder, currentFolderId) {
+                const response = await fetch(`https://www.googleapis.com/drive/v3/files?q='${currentFolderId}'+in+parents&key=${API_KEY}&fields=files(id,name,mimeType)`);
+                if (!response.ok) throw new Error(`فشل في جلب محتويات المجلد`);
+                
+                const data = await response.json();
+                const items = data.files || [];
+
+                for (const item of items) {
+                    if (item.mimeType === 'application/vnd.google-apps.folder') {
+                        const subFolder = { id: item.id, name: item.name, files: [], subFolders: [] };
+                        currentFolder.subFolders.push(subFolder);
+                        await recurse(subFolder, item.id);
+                    } else if (item.mimeType.startsWith('image/')) {
+                        currentFolder.files.push(item);
+                    }
+                }
+            }
+
+            try {
+                const folderResponse = await fetch(`https://www.googleapis.com/drive/v3/files/${folderId}?key=${API_KEY}&fields=name`);
+                if (folderResponse.ok) {
+                    const folderData = await folderResponse.json();
+                    folder.name = folderData.name;
+                }
+            } catch (e) {
+                console.warn("لم نتمكن من جلب اسم المجلد الرئيسي", e);
+            }
+
+            await recurse(folder, folderId);
+            return folder;
+        }
+
+        function renderFolder(folder, container, level = 0) {
+            const folderDiv = document.createElement('div');
+            folderDiv.className = 'folder-section';
+            if (level > 0) folderDiv.classList.add('sub-folder');
+
+            const folderButton = document.createElement('button');
+            folderButton.className = 'folder-button';
+            folderButton.setAttribute('aria-expanded', 'false');
+            folderButton.innerHTML = `<span>📁 ${folder.name || 'المجلد الرئيسي'}</span> <span class="arrow">▼</span>`;
+            
+            const folderContent = document.createElement('div');
+            folderContent.className = 'folder-content';
+
+            if (folder.files.length > 0) {
+                const galleryDiv = document.createElement('div');
+                galleryDiv.className = 'gallery';
+                
+                folder.files.forEach(file => {
+                    const card = document.createElement('div');
+                    card.className = 'card';
+                    
+                    const thumbnailUrl = `https://drive.google.com/thumbnail?id=${file.id}&sz=w600-h600`;
+                    const downloadUrl = `https://drive.google.com/uc?export=download&id=${file.id}`;
+                    
+                    card.onclick = (e) => {
+                        if (e.target.tagName !== 'BUTTON') {
+                            openImageModal(thumbnailUrl, file.name, downloadUrl);
+                        }
+                    };
+                    
+                    card.innerHTML = `
+                        <div class="img-container">
+                            <img data-src="${thumbnailUrl}" class="lazy" alt="${file.name}" onerror="this.src='https://drive.google.com/uc?export=view&id=${file.id}'">
+                        </div>
+                        <div class="card-content">
+                            <h3 title="${file.name}">${file.name}</h3>
+                            <button class="download-btn" onclick="event.stopPropagation(); window.open('${downloadUrl}', '_blank')">تحميل</button>
+                        </div>
+                    `;
+                    galleryDiv.appendChild(card);
+                });
+                folderContent.appendChild(galleryDiv);
+            }
+
+            if (folder.subFolders.length > 0) {
+                folder.subFolders.forEach(subFolder => {
+                    renderFolder(subFolder, folderContent, level + 1);
+                });
+            }
+
+            folderButton.addEventListener('click', () => {
+                const isActive = folderContent.classList.contains('active');
+                if (isActive) {
+                    folderContent.classList.remove('active');
+                    folderButton.classList.remove('active');
+                    folderButton.setAttribute('aria-expanded', 'false');
+                } else {
+                    folderContent.classList.add('active');
+                    folderButton.classList.add('active');
+                    folderButton.setAttribute('aria-expanded', 'true');
+                    
+                    // تفعيل الـ Observer على الصور المفتوحة حديثاً فوراً
+                    document.querySelectorAll('img.lazy').forEach(img => {
+                        if (lazyImageObserver) lazyImageObserver.observe(img);
+                    });
+                }
+            });
+
+            folderDiv.appendChild(folderButton);
+            folderDiv.appendChild(folderContent);
+            container.appendChild(folderDiv);
+            
+            if (level === 0) {
+                folderContent.classList.add('active');
+                folderButton.classList.add('active');
+            }
+        }
+
+        async function displayGallery() {
+            const contentDiv = document.getElementById('content');
+            try {
+                const rootFolder = await fetchFolderTree(ROOT_FOLDER_ID);
+                contentDiv.innerHTML = ''; 
+
+                if (rootFolder.files.length === 0 && rootFolder.subFolders.length === 0) {
+                    contentDiv.innerHTML = '<div class="error">لم يتم العثور على صور أو مجلدات في هذا المسار.</div>';
+                    return;
+                }
+                renderFolder(rootFolder, contentDiv);
+                
+                initLazyLoading();
+                document.querySelectorAll('img.lazy').forEach(img => {
+                    if (lazyImageObserver) lazyImageObserver.observe(img);
+                });
+
+            } catch (error) {
+                console.error('خطأ:', error);
+                contentDiv.innerHTML = `<div class="error">عذرًا، حدث خطأ أثناء الاتصال بجوجل درايف. تأكد من إعدادات الـ API.</div>`;
+            }
+        }
+
+        displayGallery();
+    </script>
+<!-- Cloudflare Pages Analytics --><script defer src='https://static.cloudflareinsights.com/beacon.min.js' data-cf-beacon='{"token": "1fd31fefd97b407ba815415063c65342"}'></script><!-- Cloudflare Pages Analytics --></body>
+</html>

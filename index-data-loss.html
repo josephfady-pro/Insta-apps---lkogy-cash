@@ -1,0 +1,319 @@
+<!DOCTYPE html>
+<html dir="rtl" lang="ar">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="INSTA LKOGY - استعادة البيانات">
+    <link rel="icon" href="WEb icon-modified.png"/>
+    <link rel="shortcut" href="WEb icon-modified.png"/>
+    <link rel="apple-touch-icon" href="WEb icon-modified.png"/>
+    <meta name="theme-color" content="#FF6B35">
+    <title>استعادة بيانات INSTA LKOGY</title>
+    <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;700&display=swap" rel="stylesheet">
+    <style>
+        /* Scrollbar */
+        ::-webkit-scrollbar {
+            width: 10px;
+        }
+        ::-webkit-scrollbar-track {
+            background: rgb(119, 27, 27);
+            border-radius: 10px;
+        }
+        ::-webkit-scrollbar-thumb {
+            background: linear-gradient(135deg, #ff416c, #ff4b2b);
+            border-radius: 10px;
+            transition: 0.3s;
+        }
+        ::-webkit-scrollbar-thumb:hover {
+            background: linear-gradient(135deg, #ff4b2b, #ff416c);
+        }
+
+        /* Loading screen */
+        #loading-screen {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: black;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            flex-direction: column;
+            z-index: 9999;
+            transition: opacity 1s ease-in-out;
+        }
+        .loading-text {
+            font-size: 24px;
+            font-weight: bold;
+            color: #03fa6e;
+            text-transform: uppercase;
+            letter-spacing: 2px;
+            text-shadow: 0 0 10px #03fa6e, 0 0 20px #03fa6e, 0 0 40px #03fa6e;
+            animation: glow 1.5s infinite alternate;
+        }
+        @keyframes glow {
+            0% { text-shadow: 0 0 10px #03fa6e; }
+            100% { text-shadow: 0 0 20px #03fa6e, 0 0 40px #03fa6e; }
+        }
+        .cube {
+            width: 50px;
+            height: 50px;
+            position: relative;
+            transform-style: preserve-3d;
+            animation: rotateCube 2s infinite linear;
+            margin-top: 20px;
+        }
+        .cube div {
+            position: absolute;
+            width: 100%;
+            height: 100%;
+            background: rgba(3, 250, 110, 0.8);
+            border: 2px solid #03fa6e;
+            box-shadow: 0 0 10px #03fa6e;
+        }
+        .cube .front  { transform: translateZ(25px); }
+        .cube .back   { transform: rotateY(180deg) translateZ(25px); }
+        .cube .left   { transform: rotateY(-90deg) translateZ(25px); }
+        .cube .right  { transform: rotateY(90deg) translateZ(25px); }
+        .cube .top    { transform: rotateX(90deg) translateZ(25px); }
+        .cube .bottom { transform: rotateX(-90deg) translateZ(25px); }
+        @keyframes rotateCube {
+            0% { transform: rotateX(0) rotateY(0); }
+            100% { transform: rotateX(360deg) rotateY(360deg); }
+        }
+        .hide {
+            opacity: 0;
+            pointer-events: none;
+        }
+
+        /* Main styles */
+        :root {
+            --primary-color: #FF6B35;
+            --secondary-color: #FF5722;
+            --gradient-start: #833ab4;
+            --gradient-middle: #fd1d1d;
+            --gradient-end: #fcb045;
+            --text-color: #333;
+            --white: #ffffff;
+            --success: #4CAF50;
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            font-family: 'Cairo', sans-serif;
+            -webkit-tap-highlight-color: transparent;
+        }
+
+        body {
+            background: linear-gradient(45deg, #833ab4, #fd1d1d, #fcb045);
+            min-height: 100vh;
+            color: #333;
+            padding: 20px;
+            line-height: 1.6;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .container {
+            max-width: 500px;
+            width: 100%;
+            margin: 0 auto;
+        }
+
+        .header {
+            text-align: center;
+            margin-bottom: 30px;
+            color: var(--white);
+            animation: fadeIn 1s ease;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(-20px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        .card {
+            background: var(--white);
+            border-radius: 15px;
+            padding: 25px;
+            margin-bottom: 20px;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+            backdrop-filter: blur(10px);
+            background-color: rgba(255, 255, 255, 0.95);
+            transition: transform 0.3s ease;
+        }
+
+        .card:hover {
+            transform: translateY(-2px);
+        }
+
+        .info-row {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 15px 0;
+            border-bottom: 1px solid #eee;
+        }
+
+        .info-row:last-child {
+            border-bottom: none;
+        }
+
+        .info-label {
+            font-weight: 600;
+            color: #555;
+            font-size: 1.1em;
+        }
+
+        .info-value {
+            font-size: 1.2em;
+            color: var(--secondary-color);
+            font-weight: bold;
+            background: rgba(255, 87, 34, 0.1);
+            padding: 5px 15px;
+            border-radius: 20px;
+        }
+
+        .points-value {
+            font-size: 2em;
+            color: var(--secondary-color);
+            font-weight: bold;
+            text-align: center;
+            margin: 10px 0;
+        }
+
+        .badge {
+            background: linear-gradient(135deg, var(--gradient-start), var(--gradient-middle), var(--gradient-end));
+            color: white;
+            padding: 8px 16px;
+            border-radius: 20px;
+            font-size: 0.9em;
+            display: inline-block;
+        }
+
+        .footer-note {
+            text-align: center;
+            color: white;
+            margin-top: 20px;
+            font-size: 0.9em;
+            opacity: 0.9;
+        }
+
+        .button {
+            background-color: var(--secondary-color);
+            color: white;
+            border: none;
+            border-radius: 10px;
+            padding: 12px 24px;
+            font-size: 1em;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            font-weight: 600;
+            display: inline-block;
+            margin-top: 10px;
+        }
+
+        .button:hover {
+            background-color: #FF6B35;
+            transform: translateY(-2px);
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
+        }
+
+        #data-container {
+            display: none;
+        }
+    </style>
+</head>
+<body>
+    <div id="loading-screen">
+        <p class="loading-text">جاري تحميل البيانات...</p>
+        <div class="cube">
+            <div class="front"></div>
+            <div class="back"></div>
+            <div class="left"></div>
+            <div class="right"></div>
+            <div class="top"></div>
+            <div class="bottom"></div>
+        </div>
+    </div>
+
+    <div class="container" id="data-container">
+        <div class="header">
+            <h1>INSTA LKOGY</h1>
+            <p>RESTORE YOUR DATA</p>
+        </div>
+ 
+        <div class="card">
+            <h2 style="text-align: center; margin-bottom: 20px; color: #333;">بيانات المستخدم</h2>
+            <div id="user-info">
+                <!-- سيتم ملؤها بواسطة JavaScript -->
+            </div>
+        </div>
+
+        <div class="footer-note">
+            <p>لاستعادة حسابك برجاء أخذ لقطة شاشة من بياناتك و التواصل مع خادم أو مبرمج و إرسال اللقطه</p>
+            
+        </div>
+    </div>
+
+    <script>
+        // إظهار شاشة التحميل ثم إخفائها بعد جلب البيانات
+        window.addEventListener('load', function() {
+            // قراءة البيانات من localStorage
+            // نقرأ من النسخة الاحتياطية أولاً (مش بتتمسح عند الـ logout)
+            const username = localStorage.getItem('lkogy_bk_username') || localStorage.getItem('username') || 'غير متوفر';
+            const gender   = localStorage.getItem('lkogy_bk_gender')   || localStorage.getItem('gender')   || 'غير متوفر';
+            const password = localStorage.getItem('lkogy_bk_password') || localStorage.getItem('password') || 'غير متوفر';
+
+            // قراءة النقاط من state إذا كانت موجودة
+            let points = 0;
+            const savedState = localStorage.getItem('instaLkogyState');
+            if (savedState) {
+                try {
+                    const state = JSON.parse(savedState);
+                    points = state.points || 0;
+                } catch (e) {
+                    console.error('خطأ في قراءة الحالة:', e);
+                }
+            }
+
+            // تجهيز HTML لعرض البيانات
+            const infoDiv = document.getElementById('user-info');
+            infoDiv.innerHTML = `
+                <div class="info-row">
+                    <span class="info-label">👤 الاسم</span>
+                    <span class="info-value">${username}</span>
+                </div>
+                <div class="info-row">
+                    <span class="info-label">⚧️ النوع (الجنس)</span>
+                    <span class="info-value">${gender === 'male' ? 'ذكر' : (gender === 'female' ? 'أنثى' : gender)}</span>
+                </div>
+                <div class="info-row">
+                    <span class="info-label">🔒 كلمة المرور</span>
+                    <span class="info-value">${password}</span>
+                </div>
+                <div class="info-row">
+                    <span class="info-label">💎 عدد اللكوجي</span>
+                    <span class="info-value points-value">${points}</span>
+                </div>
+            `;
+
+            // إخفاء شاشة التحميل وإظهار المحتوى
+            setTimeout(() => {
+                document.getElementById('loading-screen').classList.add('hide');
+                setTimeout(() => {
+                    document.getElementById('loading-screen').style.display = 'none';
+                    document.getElementById('data-container').style.display = 'block';
+                }, 1000);
+            }, 1500); // تأخير بسيط لرؤية التحميل
+        });
+
+        // تحذير في حال فتح الكونسول
+        console.warn('هذه الصفحة تعرض فقط البيانات المحلية. لا تقم بلصق أي كود هنا.');
+    </script>
+</body>
+</html>
